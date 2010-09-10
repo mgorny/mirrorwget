@@ -42,32 +42,37 @@ getmirrors() {
 }
 
 main() {
-	local wgetargv i
-	local gotnc=0 gotm=0
+	local argcount gotnc gotm arg
+	argcount=${#}
+	gotnc=0
+	gotm=0
 
-	for (( i = 1; i <= $#; i++ )); do
-		local arg=${!i}
-		
-		if [[ ${arg} == mirror://*/* ]]; then
-			local mirror
-			for mirror in $(getmirrors "${arg}"); do
-				wgetargv[$i]=${mirror}
-				(( i++ ))
-			done
+	while [ ${argcount} -gt 0 ]; do
+		arg=${1}
+		shift
+		: $(( argcount -= 1 ))
+
+		if [ ${arg#mirror://} != ${arg} ]; then
+			# Get the mirrors here, and happily append them.
+			set -- "${@}" $(getmirrors "${arg}")
+
 			gotm=1
 		else
-			[[ ${arg} = -nc || ${arg} = --no-clobber ]] && gotnc=1
-			[[ ${arg} = -c || ${arg} = --continue ]] && gotnc=1
-			wgetargv[$i]=${arg}
+			# Not a mirror, maybe an important option?
+			[ "${arg}" = -nc -o "${arg}" = --no-clobber ] && gotnc=1
+			[ "${arg}" = -c -o "${arg}" = --continue ] && gotnc=1
+
+			# Anyway, reappend it.
+			set -- "${@}" "${arg}"
 		fi
 	done
 
-	if [[ ${gotnc} -ne 1 && ${gotm} -eq 1 ]]; then
-		echo 'Prepending wget arguments with --no-clobber.' >&2
-		wgetargv[0]='--no-clobber'
+	if [ ${gotnc} -ne 1 -a ${gotm} -eq 1 ]; then
+		echo 'Prepending the wget arguments with --no-clobber.' >&2
+		set -- --no-clobber "${@}"
 	fi
 
-	exec wget "${wgetargv[@]}"
+	exec wget "${@}"
 }
 
-main "$@"
+main "${@}"
