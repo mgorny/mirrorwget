@@ -27,7 +27,7 @@ $1 == mirror {
 	gmirrors=$(awk -v mirror=gentoo "${awkscript}" "${1}")
 	umirrors=$(awk -v mirror="${mirrorname}" "${awkscript}" "${@}")
 
-	if [ ${PIPESTATUS} -ne 64 ]; then
+	if [ ${?} -ne 64 ]; then
 		echo "Warning: mirror '${mirrorname}' not found in thirdpartymirrors!" >&2
 		echo ${gmirrors} # XXX: shuffle
 	else
