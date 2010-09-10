@@ -23,12 +23,12 @@ getmirrors() {
 	done
 
 	# we need to call awk twice in order to get the 'gentoo' mirrors first
-	local awkscript='
-$1 == "_MIRROR_" {
+	local awkscript="
+\$1 == \"_MIRROR_\" {
 	for (i = 2; i < NF; i++)
-		print $i
+		print \$i \"/${mirrorpath}\"
 	exit(64)
-}'
+}"
 
 	local gmirrors=( $(awk "${awkscript/_MIRROR_/gentoo}" "${mirrorfiles[0]}") )
 	local umirrors=( $(awk "${awkscript/_MIRROR_/${mirrorname}}" "${mirrorfiles[@]}") )
