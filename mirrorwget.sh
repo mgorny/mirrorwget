@@ -4,36 +4,44 @@
 # Released under the terms of the 3-clause BSD license.
 
 getmirrors() {
-	local mirrorname=$1
-	local portdir=$(portageq portdir)
-	local overlays=$(portageq portdir_overlay)
+	local mirrorname portdir overlays repo fn awkscript gmirrors umirrors i
+	mirrorname=${1}
+	portdir=$(portageq portdir)
+	overlays=$(portageq portdir_overlay)
 
-	local mirrorfiles i=0
+	set --
 
 	for repo in "${portdir}" ${overlays}; do
-		local fn="${repo}"/profiles/thirdpartymirrors
-		if [[ -f ${fn} ]]; then
-			mirrorfiles[$i]=${fn}
-			(( i++ ))
-		fi
+		fn="${repo}"/profiles/thirdpartymirrors
+		[ -r "${fn}" ] && set -- "${@}" "${fn}"
 	done
 
-	# we need to call awk twice in order to get the 'gentoo' mirrors first
-	local awkscript='
+	# We need to call awk twice in order to get the 'gentoo' mirrors first.
+	awkscript='
 $1 == "_MIRROR_" {
 	for (i = 2; i < NF; i++)
 		print $i
 	exit(64)
 }'
 
-	local gmirrors=( $(awk "${awkscript/_MIRROR_/gentoo}" "${mirrorfiles[0]}") )
-	local umirrors=( $(awk "${awkscript/_MIRROR_/${mirrorname}}" "${mirrorfiles[@]}") )
-	if [[ ${PIPESTATUS} -ne 64 ]]; then
+	gmirrors=$(awk "${awkscript/_MIRROR_/gentoo}" "${1}")
+	umirrors=$(awk "${awkscript/_MIRROR_/${mirrorname}}" "${@}")
+
+	if [ ${PIPESTATUS} -ne 64 ]; then
 		echo "Warning: mirror '${mirrorname}' not found in thirdpartymirrors!" >&2
-		echo ${gmirrors[@]} # XXX: shuffle
+		echo ${gmirrors} # XXX: shuffle
 	else
-		echo ${gmirrors[$(( RANDOM % ${#gmirrors[@]}))]}
-		echo ${umirrors[@]} # XXX: shuffle
+		set -- ${gmirrors}
+
+		# Shift to a random argument.
+		i=$(( RANDOM % ${#} ))
+		while [ ${i} -gt 0 ]; do
+			shift
+			: $(( i -= 1 ))
+		done
+
+		echo ${1}
+		echo ${umirrors} # XXX: shuffle
 	fi
 }
 
