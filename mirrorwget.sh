@@ -18,14 +18,14 @@ getmirrors() {
 
 	# We need to call awk twice in order to get the 'gentoo' mirrors first.
 	awkscript='
-$1 == "_MIRROR_" {
+$1 == mirror {
 	for (i = 2; i < NF; i++)
 		print $i
 	exit(64)
 }'
 
-	gmirrors=$(awk "${awkscript/_MIRROR_/gentoo}" "${1}")
-	umirrors=$(awk "${awkscript/_MIRROR_/${mirrorname}}" "${@}")
+	gmirrors=$(awk -v mirror=gentoo "${awkscript}" "${1}")
+	umirrors=$(awk -v mirror="${mirrorname}" "${awkscript}" "${@}")
 
 	if [ ${PIPESTATUS} -ne 64 ]; then
 		echo "Warning: mirror '${mirrorname}' not found in thirdpartymirrors!" >&2
