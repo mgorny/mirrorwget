@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 # Support downloading from 'mirror://' links from within wget.
 # (C) 2010 Michał Górny <gentoo@mgorny.alt.pl>
 # Released under the terms of the 3-clause BSD license.
