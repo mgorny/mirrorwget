@@ -4,7 +4,7 @@
 # Released under the terms of the 3-clause BSD license.
 
 getmirrors() {
-	local mirrorname portdir overlays repo fn awkscript gmirrors umirrors i
+	local mirrorname portdir overlays repo fn awkscript gmirrors umirrors i tmp
 	mirrorname=${1}
 	portdir=$(portageq portdir)
 	overlays=$(portageq portdir_overlay)
@@ -29,7 +29,7 @@ $1 == mirror {
 
 	if [ ${?} -ne 64 ]; then
 		echo "Warning: mirror '${mirrorname}' not found in thirdpartymirrors!" >&2
-		echo ${gmirrors} # XXX: shuffle
+		umirrors=${gmirrors}
 	else
 		set -- ${gmirrors}
 
@@ -41,8 +41,23 @@ $1 == mirror {
 		done
 
 		echo ${1}
-		echo ${umirrors} # XXX: shuffle
 	fi
+
+	# Shuffle them a little.
+	set -- ${umirrors}
+
+	while [ ${#} -gt 0 ]; do
+		i=$(( RANDOM % ${#} ))
+		while [ ${i} -gt 0 ]; do
+			tmp=${1}
+			shift
+			set -- "${@}" "${tmp}"
+			: $(( i -= 1 ))
+		done
+
+		echo ${1}
+		shift
+	done
 }
 
 main() {
