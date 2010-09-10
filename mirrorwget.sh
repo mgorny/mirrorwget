@@ -24,13 +24,13 @@ $1 == mirror {
 	exit(64)
 }'
 
-	gmirrors=$(awk -v mirror=gentoo "${awkscript}" "${1}")
+	[ "${mirrorname}" != gentoo ] && gmirrors=$(awk -v mirror=gentoo "${awkscript}" "${1}")
 	umirrors=$(awk -v mirror="${mirrorname}" "${awkscript}" "${@}")
 
 	if [ ${?} -ne 64 ]; then
 		echo "Warning: mirror '${mirrorname}' not found in thirdpartymirrors!" >&2
 		umirrors=${gmirrors}
-	else
+	elif [ "${mirrorname}" != gentoo ]; then
 		set -- ${gmirrors}
 
 		# Shift to a random argument.
