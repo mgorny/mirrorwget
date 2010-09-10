@@ -4,13 +4,9 @@
 # Released under the terms of the 3-clause BSD license.
 
 getmirrors() {
-	local arg=$1
+	local mirrorname=$1
 	local portdir=$(portageq portdir)
 	local overlays=$(portageq portdir_overlay)
-
-	local splitarg=${arg#mirror://}
-	local mirrorname=${splitarg%%/*}
-	local mirrorpath=${splitarg#*/}
 
 	local mirrorfiles i=0
 
@@ -42,19 +38,25 @@ $1 == "_MIRROR_" {
 }
 
 main() {
-	local argcount gotnc gotm arg
+	local argcount gotnc gotm arg mirroruri mirrorname mirrorpath mirror
 	argcount=${#}
 	gotnc=0
 	gotm=0
 
 	while [ ${argcount} -gt 0 ]; do
 		arg=${1}
+		mirroruri=${arg#mirror://}
 		shift
 		: $(( argcount -= 1 ))
 
-		if [ ${arg#mirror://} != ${arg} ]; then
+		if [ ${mirroruri} != ${arg} ]; then
 			# Get the mirrors here, and happily append them.
-			set -- "${@}" $(getmirrors "${arg}")
+			mirrorname=${mirroruri%%/*}
+			mirrorpath=${mirroruri#*/}
+
+			for mirror in $(getmirrors "${mirrorname}"); do
+				set -- "${@}" "${mirror}/${mirrorpath}"
+			done
 
 			gotm=1
 		else
