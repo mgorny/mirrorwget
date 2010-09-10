@@ -3,6 +3,24 @@
 # (C) 2010 Michał Górny <gentoo@mgorny.alt.pl>
 # Released under the terms of the 3-clause BSD license.
 
+getrandom() {
+	# Ah, POSIX doesn't give us a ${RANDOM} but let's try...
+	local rand limit
+
+	limit=${1}
+	rand=${RANDOM}
+	if [ "${rand}" = "${RANDOM}" ]; then
+		# If ${RANDOM} seems constant, fallback to /dev/urandom.
+		rand=$(od -A n -N 2 -d /dev/urandom)
+		if [ ${?} -ne 0 ]; then
+			# Finally, fallback to using our PID.
+			rand=${$}
+		fi
+	fi
+
+	echo $(( rand % limit ))
+}
+
 getmirrors() {
 	local mirrorname portdir overlays repo fn awkscript gmirrors umirrors i tmp
 	mirrorname=${1}
@@ -34,7 +52,7 @@ $1 == mirror {
 		set -- ${gmirrors}
 
 		# Shift to a random argument.
-		i=$(( RANDOM % ${#} ))
+		i=$(getrandom ${#})
 		while [ ${i} -gt 0 ]; do
 			shift
 			: $(( i -= 1 ))
@@ -47,7 +65,7 @@ $1 == mirror {
 	set -- ${umirrors}
 
 	while [ ${#} -gt 0 ]; do
-		i=$(( RANDOM % ${#} ))
+		i=$(getrandom ${#})
 		while [ ${i} -gt 0 ]; do
 			tmp=${1}
 			shift
