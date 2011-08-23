@@ -47,7 +47,7 @@ $1 == mirror {
 	exit(64)
 }'
 
-	[ "${mirrorname}" != gentoo ] && gmirrors=$(awk -v mirror=gentoo "${awkscript}" "${1}")
+	[ "${mirrorname}" != gentoo ] && gmirrors=$(awk -v mirror=gentoo "${awkscript}" "${@}")
 	umirrors=$(awk -v mirror="${mirrorname}" "${awkscript}" "${@}")
 
 	if [ ${?} -ne 64 ]; then
