@@ -34,6 +34,11 @@ getmirrors() {
 		[ -r "${fn}" ] && set -- "${@}" "${fn}"
 	done
 
+	if [ ${#} -eq 0 ]; then
+		echo 'No repositories found, failing terribly.' >&2
+		exit 1
+	fi
+
 	# We need to call awk twice in order to get the 'gentoo' mirrors first.
 	awkscript='
 $1 == mirror {
@@ -79,7 +84,7 @@ $1 == mirror {
 }
 
 main() {
-	local argcount gotnc gotm arg mirroruri mirrorname mirrorpath mirror
+	local argcount gotnc gotm arg mirroruri mirrorname mirrorpath mirror mirrors
 	argcount=${#}
 	gotnc=0
 	gotm=0
@@ -95,7 +100,10 @@ main() {
 			mirrorname=${mirroruri%%/*}
 			mirrorpath=${mirroruri#*/}
 
-			for mirror in $(getmirrors "${mirrorname}"); do
+			mirrors=$(getmirrors "${mirrorname}")
+			[ ${?} -eq 0 ] || exit 1
+
+			for mirror in ${mirrors}; do
 				set -- "${@}" "${mirror}/${mirrorpath}"
 			done
 
