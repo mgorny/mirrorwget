@@ -22,15 +22,13 @@ getrandom() {
 }
 
 getmirrors() {
-	local mirrorname portdir overlays repo fn awkscript gmirrors umirrors i tmp
+	local mirrorname repo fn awkscript gmirrors umirrors i tmp
 	mirrorname=${1}
-	portdir=$(portageq portdir)
-	overlays=$(portageq portdir_overlay)
 
 	set --
 
-	for repo in "${portdir}" ${overlays}; do
-		fn="${repo}"/profiles/thirdpartymirrors
+	for repo in $(gentoopmq repositories); do
+		fn=$(gentoopmq repo-path ${repo})/profiles/thirdpartymirrors
 		[ -r "${fn}" ] && set -- "${@}" "${fn}"
 	done
 
